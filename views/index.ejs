@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>tracking.js - face with camera</title>
+
+  <script src="/tracking/tracking-min.js"></script>
+  <script src="/tracking/data/face-min.js"></script>
+  <script src="/tracking/data/eye-min.js"></script>
+
+  <style>
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body style="width: 100%; height: 100%;">
+
+  <div class="demo-frame">
+    <div class="demo-container">
+      <video id="video" preload autoplay loop muted style="z-index: 0;" width="100%" height="100%;"></video>
+      <canvas id="canvas" style="z-index: 10;" width="100%" height="100%;"></canvas>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      var video = document.getElementById('video');
+      var canvas = document.getElementById('canvas');
+      var context = canvas.getContext('2d');
+
+      video.setAttribute('autoplay', '');
+      video.setAttribute('muted', '');
+      video.setAttribute('playsinline', '');
+
+      var sg = new Image();
+      sg.src = "/sunglasses.png";
+
+      function getCenter(rect){
+        var ret = {x: 0, y:0};
+        rect.x = rect.x + (rect.width/2);
+        rect.y = rect.y + (rect.height/2);
+        return ret;
+      }
+
+      var tracker = new tracking.ObjectTracker(['eye']);
+      tracker.setStepSize(2);
+      //tracker.setInitialScale(4);
+      //tracker.setStepSize(2);
+      //tracker.setEdgesDensity(0.1);
+
+      context.canvas.width  = window.innerWidth;
+      context.canvas.height = window.innerHeight;
+
+      tracking.track('#video', tracker, { camera: true });
+      console.log("going");
+
+      tracker.on('track', function(event) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        if(event.data.length == 2){
+          console.log("yeah")
+          context.beginPath();
+          context.moveTo(event.data[0].x + (event.data[0].width/2), event.data[0].y + (event.data[0].height/2));
+          context.lineTo(event.data[1].x + (event.data[1].width/2), event.data[1].y + (event.data[1].height/2));
+          context.stroke();
+        }
+
+        event.data.forEach(function(rect) {
+          context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+        });
+      });
+    };
+  </script>
+
+</body>
+</html>
